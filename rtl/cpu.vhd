@@ -372,9 +372,12 @@ architecture arch of cpu is
    signal scratchpad_data_a            : std_logic_vector(31 downto 0);
    signal scratchpad_wren_a            : std_logic_vector(3 downto 0);
    signal scratchpad_q_a               : std_logic_vector(31 downto 0);
+   signal scratchpad_clken_b           : std_logic;
    signal scratchpad_address_b         : std_logic_vector(7 downto 0);
    signal scratchpad_q_b               : std_logic_vector(31 downto 0);
    signal scratchpad_dataread          : unsigned(31 downto 0);
+   signal scratchpad_last              : unsigned(31 downto 0);
+   signal scratchpad_same              : std_logic_vector(3 downto 0);
    
    -- data cache  
    signal dcache_read_enable           : std_logic := '0';
@@ -2026,31 +2029,34 @@ begin
    scratchpad_address_a <= std_logic_vector(SS_Adr(7 downto 0)) when (SS_wren_SCP = '1' or SS_rden_SCP = '1') else std_logic_vector(executeMemWriteAddr(9 downto 2));
    scratchpad_data_a    <= SS_DataWrite                         when (SS_wren_SCP = '1') else std_logic_vector(executeMemWriteData);
    
-   scratchpad_address_b <= std_logic_vector(executeReadAddress(9 downto 2));
+   --scratchpad_address_b <= std_logic_vector(executeReadAddress(9 downto 2));
+   scratchpad_address_b <= std_logic_vector(EXEMemAddr(9 downto 2));
+   scratchpad_clken_b   <= ce when (stall = 0) else '0';
    
    gscratchpad: for i in 0 to 3 generate
    begin
-      icache: entity work.dpram
+      icache: entity work.dpram_1clk
       generic map ( addr_width => 8, data_width => 8)
       port map
       (
-         clock_a     => clk1x,
+         clock       => clk1x,
+         
          clken_a     => ce or SS_wren_SCP or SS_rden_SCP,
          address_a   => scratchpad_address_a,
          data_a      => scratchpad_data_a((8*i) + 7 downto (8*i)),
          wren_a      => scratchpad_wren_a(i),
          q_a         => scratchpad_q_a((8*i) + 7 downto (8*i)),
          
-         clock_b     => clk2x,
+         clken_b     => scratchpad_clken_b,
          address_b   => scratchpad_address_b,
          data_b      => x"00",
          wren_b      => '0',
          q_b         => scratchpad_q_b((8*i) + 7 downto (8*i))
       );
+      
+      scratchpad_dataread((8*i) + 7 downto (8*i)) <= scratchpad_last((8*i) + 7 downto (8*i)) when (scratchpad_same(i) = '1') else unsigned(scratchpad_q_b((8*i) + 7 downto (8*i)));
    end generate; 
-   
-   scratchpad_dataread <= unsigned(scratchpad_q_b);
-   
+
    
    -- datacache ###############################################
    dcache_write_enable <= '1' when (ram_done = '1' and mem4_pending = '1' and writebackReadAddress(28 downto 0) < 16#800000#) else 
@@ -2262,6 +2268,13 @@ begin
             gte_writeEna  <= '0';
             gte_cmdEna    <= '0';
          end if;
+         
+         if (SS_wren_SCP = '1') then
+            scratchpad_same <= (others => '1');
+            if (scratchpad_address_a = scratchpad_address_b) then
+               scratchpad_last <= unsigned(SS_DataWrite);
+            end if;
+         end if;
       
          if (reset = '1') then
          
@@ -2332,6 +2345,12 @@ begin
             if (stall = 0) then
             
                lateReadBypass <= '0';
+               
+               scratchpad_same <= (others => '0');
+               scratchpad_last <= executeMemWriteData;
+               if (scratchpad_address_a = scratchpad_address_b) then
+                  scratchpad_same <= scratchpad_wren_a; 
+               end if;
 
                if (exception(4 downto 3) > 0) then
                
