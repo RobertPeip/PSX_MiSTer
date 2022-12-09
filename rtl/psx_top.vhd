@@ -1859,7 +1859,6 @@ begin
    port map
    (
       clk1x             => clk1x,
-      clk2x             => clk2x,
       clk3x             => clk3x,
       ce                => ce,   
       reset             => reset_intern,
@@ -1901,6 +1900,7 @@ begin
       dma_cache_write   => dma_cache_write,  
       
       ram_dataRead      => ram_dataRead32,    
+      ram_rnw           => ram_cpu_rnw,
       ram_done          => ram_cpu_done,
       
       gte_busy          => gte_busy, 

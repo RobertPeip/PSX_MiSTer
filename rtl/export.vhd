@@ -36,7 +36,7 @@ entity export is
    generic
    (
       export_index      : std_logic := '1';
-      export_time       : std_logic := '0'
+      export_time       : std_logic := '1'
    );
    port 
    (

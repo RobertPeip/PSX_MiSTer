@@ -10,7 +10,6 @@ entity cpu is
    port 
    (
       clk1x                 : in  std_logic;
-      clk2x                 : in  std_logic;
       clk3x                 : in  std_logic;
       ce                    : in  std_logic;
       reset                 : in  std_logic;
@@ -52,6 +51,7 @@ entity cpu is
       dma_cache_write       : in  std_logic;
       
       ram_done              : in  std_logic;
+      ram_rnw               : in  std_logic;
       ram_dataRead          : in  std_logic_vector(31 downto 0); 
       
       gte_busy              : in  std_logic;
@@ -2059,7 +2059,7 @@ begin
 
    
    -- datacache ###############################################
-   dcache_write_enable <= '1' when (ram_done = '1' and mem4_pending = '1' and writebackReadAddress(28 downto 0) < 16#800000#) else 
+   dcache_write_enable <= '1' when (ram_done = '1' and ram_rnw = '1' and mem4_pending = '1' and writebackReadAddress(28 downto 0) < 16#800000#) else 
                           '1' when (mem4_request = '1' and mem4_rnw = '0') else 
                           '1' when (dma_cache_write = '1') else
                           '0';
@@ -2074,9 +2074,9 @@ begin
                           ram_dataRead    when (ram_done = '1' and mem4_pending = '1') else
                           mem4_dataWrite;
 
-   dcache_read_enable  <= ce when (stall = 0 and executeReadEnable = '1' and executeReadAddress(28 downto 0) < 16#800000#) else '0';
+   dcache_read_enable  <= ce when (stall = 0 and EXEReadEnable = '1' and EXEMemAddr(28 downto 0) < 16#800000#) else '0';
    
-   dcache_read_addr    <= std_logic_vector(executeReadAddress(20 downto 2));
+   dcache_read_addr    <= std_logic_vector(EXEMemAddr(20 downto 2));
 
    idatacache : entity work.datacache
    generic map
@@ -2088,10 +2088,10 @@ begin
    port map
    (
       clk1x             => clk1x,
-      clk2x             => clk2x,
       reset             => reset,
       halfrate          => TURBO_CACHE50,
                         
+      read_ce           => scratchpad_clken_b,
       read_enable       => dcache_read_enable,  -- only used for calculating cache hit ratio
       read_addr         => dcache_read_addr,   
       read_hit          => dcache_read_hit,   
