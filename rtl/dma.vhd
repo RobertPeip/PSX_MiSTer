@@ -24,8 +24,8 @@ entity dma is
       
       canDMA               : in  std_logic;
       cpuPaused            : in  std_logic;
-      dmaRequest           : out std_logic;
-      dmaStallCPU          : out std_logic;
+      dmaRequest           : out std_logic := '0';
+      dmaStallCPU          : out std_logic := '0';
       dmaOn                : out std_logic;
       irqOut               : out std_logic := '0';
       

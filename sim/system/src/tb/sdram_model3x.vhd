@@ -261,7 +261,7 @@ begin
       data_ready_delay1 <= '0' & data_ready_delay1(10 downto 1);
 
       if(data_ready_delay1(6) = '1' and dma_buffer = '0' and cache_buffer_next = '0') then done_3x  <= '1'; end if;
-      if(data_ready_delay1(4) = '1' and cache_buffer_next = '1')                      then done_3x  <= '1'; end if;
+      if(data_ready_delay1(2) = '1' and cache_buffer_next = '1')                      then done_3x  <= '1'; end if;
       if(data_ready_delay1(6) = '1' and dma_buffer = '1')                             then dma_done <= '1'; end if;
       
       if(data_ready_delay1(7) = '1') then cache_buffer_next <= cache_buffer; end if;

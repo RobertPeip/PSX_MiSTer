@@ -43,7 +43,7 @@ entity gpu_vram2vram is
       pixelStall           : in  std_logic;
       pixelColor           : out std_logic_vector(15 downto 0);
       pixelAddr            : out unsigned(19 downto 0);
-      pixelWrite           : out std_logic
+      pixelWrite           : out std_logic := '0'
    );
 end entity;
 

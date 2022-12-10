@@ -208,7 +208,7 @@ architecture arch of gpu is
    signal fifoIn_Valid              : std_logic;
       
    -- Processing  
-   signal proc_idle                 : std_logic;
+   signal proc_idle                 : std_logic := '1';
    signal proc_done                 : std_logic;
    --signal proc_CmdDone              : std_logic;
    signal proc_requestFifo          : std_logic;

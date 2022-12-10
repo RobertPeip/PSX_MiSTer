@@ -14,7 +14,7 @@ entity datacache is
    );
    port 
    (
-      clk1x             : in  std_logic;
+      clk               : in  std_logic;
       reset             : in  std_logic;
       halfrate          : in  std_logic;
                         
@@ -75,14 +75,14 @@ begin
    generic map ( addr_width => SIZEBITS, data_width => BITWIDTH)
    port map
    (
-      clock_a     => clk1x,
+      clock_a     => clk,
       clken_a     => read_ce,
       address_a   => memory_addr_a,
       data_a      => (memory_dataout'range => '0'),
       wren_a      => '0',
       q_a         => memory_dataout,
       
-      clock_b     => clk1x,
+      clock_b     => clk,
       address_b   => memory_addr_b,
       data_b      => memory_datain,
       wren_b      => memory_we,
@@ -93,14 +93,14 @@ begin
    generic map ( addr_width => SIZEBITS, data_width => ADDRSAVEBITS + 1)
    port map
    (
-      clock_a     => clk1x,
+      clock_a     => clk,
       clken_a     => read_ce,
       address_a   => addrsave_addr_a,
       data_a      => (addrsave_dataout'range => '0'),
       wren_a      => '0',
       q_a         => addrsave_dataout,
       
-      clock_b     => clk1x,
+      clock_b     => clk,
       address_b   => addrsave_addr_b,
       data_b      => addrsave_datain,
       wren_b      => addrsave_we,
@@ -125,9 +125,9 @@ begin
    memory_datain   <= write_data;
    memory_we       <= write_enable;
    
-   process (clk1x)
+   process (clk)
    begin
-      if rising_edge(clk1x) then
+      if rising_edge(clk) then
       
          if (read_ce = '1') then
             upperbits <= read_addr(SIZEBASEBITS-1 downto SIZEBITS);
