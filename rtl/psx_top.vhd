@@ -1859,6 +1859,8 @@ begin
    port map
    (
       clk1x             => clk1x,
+      clk2x             => clk2x,
+      clk2xIndex        => clk2xIndex,
       clk3x             => clk3x,
       ce                => ce,   
       reset             => reset_intern,

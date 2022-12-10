@@ -10,6 +10,8 @@ entity cpu is
    port 
    (
       clk1x                 : in  std_logic;
+      clk2x                 : in  std_logic;
+      clk2xIndex            : in  std_logic;
       clk3x                 : in  std_logic;
       ce                    : in  std_logic;
       reset                 : in  std_logic;
@@ -466,22 +468,44 @@ architecture arch of cpu is
 begin 
 
    -- IO
-   mem_request       <= mem1_request or mem1_request_latched or mem4_request when (memoryMuxBusy = '0' or mem_done = '1') else '0';
-   mem_isCache       <= FetchLastCache     when (mem1_request_latched = '1') else mem1_cacherequest;
-   mem_oldtagvalids  <= FetchLastTagvalids when (mem1_request_latched = '1') else mem1_tagvalids;
-   mem_addressInstr  <= FetchLastAddr      when (mem1_request_latched = '1') else mem1_address;
-   mem_isData        <= mem4_request;
-   mem_rnw           <= mem4_rnw     when mem4_request = '1' else '1';
-   mem_addressData   <= mem4_address;
-   mem_reqsize       <= mem4_reqsize when mem4_request = '1' else "10";
-   mem_dataWrite     <= mem4_dataWrite;
-   mem_writeMask     <= executeMemWriteMask;
+   process (clk2x)
+   begin
+      if (rising_edge(clk2x)) then
+      
+         if ((mem1_request = '1' or mem1_request_latched = '1' or mem4_request = '1') and (memoryMuxBusy = '0' or mem_done = '1')) then
+            mem_request       <= '1';
+            mem_isData        <= mem4_request;
+            mem_addressData   <= mem4_address;
+            mem_dataWrite     <= mem4_dataWrite;
+            mem_writeMask     <= executeMemWriteMask;
+            if (mem1_request_latched = '1') then
+               mem_isCache       <= FetchLastCache;
+               mem_oldtagvalids  <= FetchLastTagvalids;
+               mem_addressInstr  <= FetchLastAddr;
+            else
+               mem_isCache       <= mem1_cacherequest;
+               mem_oldtagvalids  <= mem1_tagvalids;
+               mem_addressInstr  <= mem1_address;
+            end if;
+            if (mem4_request = '1') then
+               mem_rnw      <= mem4_rnw;
+               mem_reqsize  <= mem4_reqsize;
+            else
+               mem_rnw      <= '1';
+               mem_reqsize  <= "10";
+            end if;
+         elsif (clk2xIndex = '1') then
+            mem_request <= '0';
+         end if;
+      
+      end if;
+   end process;
 
+   -- common
    mem1_cacherequest <= '1' when (to_integer(FetchAddr(31 downto 29)) = 0 or to_integer(FetchAddr(31 downto 29)) = 4) else '0';
 
    stallNext         <= mem_request or stallNew3;
-
-   -- common
+   
    stall        <= dmaStallCPU & stall4 & stall3 & stall2 & stall1;
 
    exceptionNew <= exceptionNew5 & '0' & exceptionNew3 & '0' & exceptionNew1;
