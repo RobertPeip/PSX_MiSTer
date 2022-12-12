@@ -1417,7 +1417,7 @@ begin
                else
                   if (decodeSource1(4) = '1') then
                      EXEgte_cmdEna <= '1';
-                     if (gte_busy = '1' or execute_gte_cmdEna = '1') then
+                     if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1') then
                         stallNew3    <= '1';
                         EXEstalltype <= EXESTALLTYPE_GTECMD;
                      end if;
@@ -1427,7 +1427,7 @@ begin
                            EXEresultWriteEnable <= '1';
                            EXEresultData        <= gte_readData;
                            EXElastreadCOP       <= '1';
-                           if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1' or gte_writeEna = '1') then --gte_cmdEna not needed as will be busy on new request anyway?
+                           if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1' or gte_writeEna = '1') then
                               stallNew3    <= '1';
                               EXEstalltype <= EXESTALLTYPE_GTE;
                            else
@@ -1438,7 +1438,7 @@ begin
                            EXEresultWriteEnable <= '1';
                            EXEresultData        <= gte_readData;
                            EXElastreadCOP       <= '1';
-                           if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1' or gte_writeEna = '1') then --gte_cmdEna not needed as will be busy on new request anyway?
+                           if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1' or gte_writeEna = '1') then
                               stallNew3    <= '1';
                               EXEstalltype <= EXESTALLTYPE_GTE;
                            else
@@ -1447,14 +1447,14 @@ begin
                         
                         when x"4" => --mtcn
                            EXEgte_writeEna      <= '1';
-                           if (gte_busy = '1' or execute_gte_cmdEna = '1') then
+                           if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1') then
                               stallNew3    <= '1';
                               EXEstalltype <= EXESTALLTYPE_GTECMD;
                            end if;
                         
                         when x"6" => --cfcn
                            EXEgte_writeEna      <= '1';
-                           if (gte_busy = '1' or execute_gte_cmdEna = '1') then
+                           if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1') then
                               stallNew3    <= '1';
                               EXEstalltype <= EXESTALLTYPE_GTECMD;
                            end if;
@@ -1584,7 +1584,7 @@ begin
                   EXEGTeReadEnable <= '1';
                   EXELoadType      <= LOADTYPE_DWORD;
                   EXEReadEnable    <= '1';
-                  if (gte_busy = '1' or execute_gte_cmdEna = '1') then
+                  if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1') then
                      stallNew3    <= '1';
                      EXEstalltype <= EXESTALLTYPE_GTECMD;
                   end if;
@@ -1606,7 +1606,7 @@ begin
                else
                   EXEMemWriteEnable <= '1';
                   EXEMemWriteData   <= gte_readData;
-                  if (gte_busy = '1' or execute_gte_cmdEna = '1' or gte_writeEna = '1') then
+                  if (gte_busy = '1' or gte_cmdEna = '1' or execute_gte_cmdEna = '1' or gte_writeEna = '1') then
                      stallNew3    <= '1';
                      EXEstalltype <= EXESTALLTYPE_GTE;
                   else
@@ -1768,7 +1768,7 @@ begin
                executeStalltype    <= EXESTALLTYPE_NONE;
             end if;
             
-            if (executeStalltype = EXESTALLTYPE_GTECMD and gte_busy = '0') then
+            if (executeStalltype = EXESTALLTYPE_GTECMD and gte_busy = '0' and gte_cmdEna = '0') then
                stall3              <= '0';
                executeStalltype    <= EXESTALLTYPE_NONE;
             end if;
@@ -2224,12 +2224,7 @@ begin
                   
                   writebackGTEReadEnable       <= executeGTEReadEnable;
                   WBgte_writeAddr              <= '0' & executeGTETarget;
-                  
-                  oldData := resultData;
-                  if (writebackTarget = resultTarget and writebackWriteEnable = '1') then
-                     oldData := writebackData;
-                  end if;
-                  
+
                   writebackWriteEnable <= '0';
                   if (executeReadEnable = '1') then
                      if (((executeReadAddress(31 downto 29) = 0 or executeReadAddress(31 downto 29) = 4) and executeReadAddress(28 downto 10) = 16#7E000#) or -- scratchpad read
@@ -2240,6 +2235,10 @@ begin
                            gte_writeEna  <= '1';
                         else
                            writebackWriteEnable <= '1';
+                           oldData := resultData;
+                           if (writebackTarget = resultTarget and writebackWriteEnable = '1') then
+                              oldData := writebackData;
+                           end if;
 
                            case (executeLoadType) is
                               when LOADTYPE_SBYTE => 
@@ -2336,6 +2335,9 @@ begin
                   gte_writeEna  <= '1';
                else
                   writebackWriteEnable <= '1';
+                  if (writeDoneTarget = writebackTarget and writeDoneWriteEnable = '1') then
+                     oldData := writeDoneData;
+                  end if;
                
                   case (writebackLoadType) is
                      

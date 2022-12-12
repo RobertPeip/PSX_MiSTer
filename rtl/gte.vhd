@@ -10,6 +10,7 @@ entity gte is
    (
       clk1x                : in  std_logic;
       clk2x                : in  std_logic;
+      clk2xIndex           : in  std_logic;
       ce                   : in  std_logic;
       reset                : in  std_logic;
       
@@ -265,7 +266,7 @@ begin
 
    gte_writeAddr <= SS_Adr                 when (loading_savestate = '1') else gte_writeAddr_in;
    gte_writeData <= unsigned(SS_DataWrite) when (loading_savestate = '1') else gte_writeData_in;
-   gte_writeEna  <= SS_wren                when (loading_savestate = '1') else gte_writeEna_in; 
+   gte_writeEna  <= SS_wren and clk2xIndex when (loading_savestate = '1') else gte_writeEna_in; 
    
    process (all)
    begin
@@ -1552,8 +1553,9 @@ begin
          variable regcheck       : integer range 0 to 3; 
          variable busy_1         : std_logic := '0'; 
          variable gte_writeEna_1 : std_logic := '0';
-         variable gte_readEna_1  : std_logic := '0';
          variable gte_cmdEna_1   : std_logic := '0';
+         
+         variable gte_readAddr_1 : unsigned(5 downto 0);
          
          variable outputCountNew : integer;
          
@@ -1747,7 +1749,7 @@ begin
                outputCountNew := outputCountNew + 1;
             end if;
             
-            if (gte_readEna_1 = '1') then
+            if (gte_readEna = '1') then
                write(line_out, string'("REG READ: "));
                if (gte_readAddr < 10) then
                   write(line_out, string'("0"));
@@ -1762,7 +1764,6 @@ begin
             busy_1 := gte_busy;
             gte_writeEna_1 := gte_writeEna;
             gte_cmdEna_1   := gte_cmdEna;
-            gte_readEna_1  := gte_readEna; 
             
             outputCount <= outputCountNew;
             
