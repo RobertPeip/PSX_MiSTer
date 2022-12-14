@@ -618,7 +618,7 @@ begin
       widthad                             => 5
 	)
 	PORT MAP (
-      inclock    => clk1x,
+      inclock    => clk2x,
       wren       => regs_wren_a,
       data       => regs_data_a,
       wraddress  => regs_address_a,
@@ -2643,9 +2643,9 @@ begin
 --############################### debug
 --##############################################################
 
-   process (clk1x)
+   process (clk2x)
    begin
-      if (rising_edge(clk1x)) then
+      if (rising_edge(clk2x)) then
       
          error  <= '0';
          error2 <= '0';
