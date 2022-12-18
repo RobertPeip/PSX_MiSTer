@@ -2000,7 +2000,7 @@ begin
    idatacache : entity work.datacache
    generic map
    (
-      SIZE              => 16384,
+      SIZE              => 32768,
       SIZEBASEBITS      => 19,
       BITWIDTH          => 32
    )
