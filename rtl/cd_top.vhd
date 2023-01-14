@@ -163,6 +163,7 @@ architecture arch of cd_top is
    signal CDDA_outcnt               : integer range 0 to 8;
       
    signal seekOnDiskCmd             : std_logic := '0';
+   signal stop_afterseek            : std_logic := '0';
    signal setMode                   : std_logic := '0';
    signal newMode                   : std_logic_vector(7 downto 0);
    signal readSN                    : std_logic := '0';
@@ -876,6 +877,7 @@ begin
             getIDAck                <= '0';
             softReset               <= '0';
             seekOnDiskCmd           <= '0';
+            stop_afterseek          <= '0';
             setMode                 <= '0';
             readSN                  <= '0';
             play                    <= '0';
@@ -1120,12 +1122,12 @@ begin
                         end if;
                         if (driveState = DRIVE_SEEKLOGICAL or driveState = DRIVE_SEEKPHYSICAL or driveState = DRIVE_SEEKIMPLICIT) then
                            -- todo: complete seek?
+                           stop_afterseek <= '1';
                         else
                            drive_stop <= '1';
                         end if;
                      
                      when x"0A" => -- reset
-                        cmdAck <= '1';
                         if (working = '1' and workCommand = x"0A") then
                            cmdPending <= '0';
                         else
@@ -1134,6 +1136,7 @@ begin
                            --{
                            --   updatePositionWhileSeeking();
                            --}
+                           cmdAck      <= '1';
                            softReset   <= '1';
                            working     <= '1';
                            workDelay   <= workDelay + 399999; -- cannot ignore old workdelay, otherwise reset after pause is too fast(e.g. GTA PAL)
@@ -2029,6 +2032,11 @@ begin
                   driveState  <= DRIVE_SEEKPHYSICAL;
                end if;
             end if;    
+            
+            if (stop_afterseek = '1') then
+               readAfterSeek <= '0';
+               playAfterSeek <= '0';
+            end if;
             
             if (calcSeekTime = '1') then
             
