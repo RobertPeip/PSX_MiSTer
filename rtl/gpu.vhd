@@ -107,8 +107,8 @@ entity gpu is
       video_vsync          : out std_logic := '0';
       video_hblank         : out std_logic := '0';
       video_vblank         : out std_logic := '0';
-      video_DisplayWidth   : out unsigned( 9 downto 0);
-      video_DisplayHeight  : out unsigned( 8 downto 0);
+      video_DisplayWidth   : out unsigned(10 downto 0);
+      video_DisplayHeight  : out unsigned( 9 downto 0);
       video_DisplayOffsetX : out unsigned( 9 downto 0) := (others => '0'); 
       video_DisplayOffsetY : out unsigned( 8 downto 0) := (others => '0'); 
       video_ce             : out std_logic;
@@ -208,7 +208,7 @@ architecture arch of gpu is
    signal fifoIn_Valid              : std_logic;
       
    -- Processing  
-   signal proc_idle                 : std_logic := '1';
+   signal proc_idle                 : std_logic;
    signal proc_done                 : std_logic;
    --signal proc_CmdDone              : std_logic;
    signal proc_requestFifo          : std_logic;

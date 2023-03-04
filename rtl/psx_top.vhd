@@ -158,8 +158,8 @@ entity psx_top is
       vsync                 : out std_logic;
       hblank                : out std_logic;
       vblank                : out std_logic;
-      DisplayWidth          : out unsigned( 9 downto 0);
-      DisplayHeight         : out unsigned( 8 downto 0);
+      DisplayWidth          : out unsigned(10 downto 0);
+      DisplayHeight         : out unsigned( 9 downto 0);
       DisplayOffsetX        : out unsigned( 9 downto 0);
       DisplayOffsetY        : out unsigned( 8 downto 0);
       video_ce              : out std_logic;
@@ -199,6 +199,7 @@ entity psx_top is
       actionNextSnac        : in  std_logic;
       receiveValidSnac      : in  std_logic;
       ackSnac               : in  std_logic;
+      snacMC                : in  std_logic;
       receiveBufferSnac	    : in  std_logic_vector(7 downto 0);
       transmitValueSnac     : out std_logic_vector(7 downto 0);		
       selectedPort1Snac     : out std_logic;
@@ -803,7 +804,7 @@ begin
                
             end if;
             
-         end if; 
+         end if;   
          
          if (reset_in = '1') then
             pausing   <= '0';
@@ -1099,6 +1100,7 @@ begin
       actionNextSnac       => actionNextSnac,
       receiveValidSnac     => receiveValidSnac,
       ackSnac              => ackSnac,
+      snacMC               => snacMC,
       
       mem1_request         => memDDR3card1_request,   
       mem1_BURSTCNT        => memDDR3card1_BURSTCNT,  
@@ -1950,7 +1952,7 @@ begin
    port map
    (
       clk1x                => clk1x,     
-      clk2x                => clk2x,   
+      clk2x                => clk2x,     
       clk2xIndex           => clk2xIndex,
       ce                   => ce,        
       reset                => reset_intern,     
